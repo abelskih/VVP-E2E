@@ -40,5 +40,10 @@ resolved commit SHA of this repository.
 3. Add focused specs ending in `.spec.ts`.
 4. Run `pnpm run validate` before the first browser run.
 
+The first connected suite is `projects/VVP-TEST-TOWER`, migrated from the VVP
+Test Tower repository. Its smoke scenarios still require
+`E2E_ALLOW_GLOBAL_GATE_MUTATION=1` and must only run against an isolated local
+database.
+
 Tower staged reporting, Task_AI, Docker Compose, and VM/preview orchestration are
 outside this repository's initial scope.

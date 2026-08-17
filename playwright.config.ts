@@ -9,10 +9,11 @@ const artifactRoot = `artifacts/${environment.productCode}`;
 export default defineConfig({
   testDir: environment.testDir,
   testMatch: "**/*.spec.ts",
-  fullyParallel: true,
+  timeout: 60_000,
+  fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: [
     ["line"],
     ["html", { outputFolder: `${artifactRoot}/html`, open: "never" }],
@@ -21,6 +22,7 @@ export default defineConfig({
   outputDir: `${artifactRoot}/test-results`,
   use: {
     baseURL: environment.baseUrl,
+    locale: "ru-RU",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -28,7 +30,10 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: process.platform === "linux" ? { args: ["--no-sandbox"] } : {},
+      },
     },
   ],
 });
