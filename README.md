@@ -6,8 +6,24 @@ checks; this repository owns only browser-test code and its artifacts.
 
 ## Run a product suite
 
-The product GitHub Action starts the product first, then checks out this
-repository into a temporary directory and runs:
+The product GitHub Action starts the product first, then invokes the private
+composite action on the same runner:
+
+```yaml
+- id: e2e
+  uses: abelskih/VVP-E2E@<full-commit-sha>
+  with:
+    product-code: PRODUCT-CODE
+    base-url: http://127.0.0.1:4173
+```
+
+Pin the action to a full commit SHA so `e2e-commit-sha` is immutable. Private
+repositories owned by `abelskih` receive a short-lived GitHub installation
+token when VVP-E2E Actions access is enabled; they do not need a separate PAT.
+Repositories belonging to another owner must obtain read-only access before
+using the fallback checkout flow.
+
+For local development, run:
 
 ```powershell
 $env:PRODUCT_CODE = "PRODUCT-CODE"
