@@ -11,6 +11,7 @@ test("private composite action runs a product suite on the caller runner and exp
   assert.match(action, /product-code:/);
   assert.match(action, /base-url:/);
   assert.match(action, /allow-global-gate-mutation:/);
+  assert.match(action, /e2e-commit-sha:/);
   assert.match(action, /working-directory: \$\{\{ github\.action_path \}\}/);
   assert.match(action, /pnpm install --frozen-lockfile/);
   assert.match(action, /playwright install --with-deps chromium/);
@@ -21,7 +22,9 @@ test("private composite action runs a product suite on the caller runner and exp
   assert.match(action, /artifact-path=/);
   assert.match(action, /junit-path=/);
   assert.match(action, /e2e-commit-sha=/);
-  assert.match(action, /github\.action_ref/);
+  assert.match(action, /\^\[0-9a-f\]\{40\}\$/);
+  assert.match(action, /inputs\.e2e-commit-sha/);
+  assert.doesNotMatch(action, /github\.action_ref/);
   assert.match(action, /exit 0/);
   assert.doesNotMatch(action, /actions\/checkout/);
 });

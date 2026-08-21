@@ -15,6 +15,7 @@ composite action on the same runner:
   with:
     product-code: PRODUCT-CODE
     base-url: http://127.0.0.1:4173
+    e2e-commit-sha: <full-commit-sha>
 ```
 
 Pin the action to a full commit SHA so `e2e-commit-sha` is immutable. Private
