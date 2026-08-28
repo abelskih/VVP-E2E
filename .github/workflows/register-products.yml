@@ -1,0 +1,55 @@
+name: Register Tower products
+
+on:
+  repository_dispatch:
+    types: [vvp-e2e-product-created]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vvp-e2e-product-registry
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      TOWER_URL: ${{ vars.TOWER_URL }}
+      VVP_E2E_RECONCILIATION_TOKEN: ${{ secrets.VVP_E2E_RECONCILIATION_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Reconcile product registry
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            test -n "${{ github.event.client_payload.productCode }}"
+            pnpm registry:reconcile -- --product-code "${{ github.event.client_payload.productCode }}"
+          else
+            pnpm registry:reconcile -- --from-tower
+          fi
+      - name: Commit new registry entries
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "$(git status --porcelain -- projects)" ]]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- 'projects/*/.gitkeep'
+          git commit -m "chore(registry): sync Tower products"
+          git pull --rebase
+          git push
