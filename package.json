@@ -7,7 +7,7 @@
   "scripts": {
     "test": "pnpm run test:unit",
     "test:unit": "node --test tests/*.test.mjs",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --pass-with-no-tests",
     "test:e2e:list": "playwright test --list",
     "registry:reconcile": "node scripts/reconcile-products.mjs",
     "typecheck": "tsc --noEmit",

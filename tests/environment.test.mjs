@@ -17,6 +17,7 @@ async function withRepository(run) {
 
 test("selects the requested product suite and normalized HTTP base URL", async () => {
   await withRepository(async (rootDir) => {
+    await mkdir(join(rootDir, "projects", "OTHER-PRODUCT"), { recursive: true });
     const result = resolveE2eEnvironment({
       rootDir,
       env: {
@@ -27,6 +28,7 @@ test("selects the requested product suite and normalized HTTP base URL", async (
 
     assert.equal(result.productCode, "PRODUCT-A");
     assert.equal(result.testDir, join(rootDir, "projects", "PRODUCT-A"));
+    assert.notEqual(result.testDir, join(rootDir, "projects", "OTHER-PRODUCT"));
     assert.equal(result.baseUrl, "http://127.0.0.1:4173/");
   });
 });
