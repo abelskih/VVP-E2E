@@ -11,5 +11,6 @@ projects/
 ```
 
 Keep product-specific selectors, fixtures, and credentials inside that product's
-boundary. Credentials enter through environment variables and must not be
-committed.
+boundary. A newly registered product intentionally starts with only `.gitkeep`
+and runs successfully with 0 tests. Credentials enter through environment
+variables and must not be committed.

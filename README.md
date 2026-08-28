@@ -19,7 +19,25 @@ pnpm run test:e2e
 
 `PRODUCT_CODE` must match an existing directory below `projects/`.
 `E2E_BASE_URL` must use HTTP or HTTPS. Path traversal and unknown products are
-rejected before Playwright starts.
+rejected before Playwright starts. A registered project may contain no specs;
+in that case the command succeeds and produces a JUnit report with 0 tests.
+
+## Register Tower products
+
+The `Register Tower products` GitHub Actions workflow creates a product
+directory when Tower dispatches `vvp-e2e-product-created`. An hourly run
+reconciles all products through Tower's authenticated registry feed, and
+`workflow_dispatch` provides manual recovery. Registration only creates a
+missing `projects/<PRODUCT_CODE>/.gitkeep`: it does not run Playwright, alter an
+existing suite, or select tests belonging to another product.
+
+Configure repository variable `TOWER_URL` and Actions secret
+`VVP_E2E_RECONCILIATION_TOKEN`. The secret must equal Tower's dedicated token;
+rotate both copies together. To test locally without contacting Tower:
+
+```powershell
+pnpm run registry:reconcile -- --product-code PRODUCT-CODE
+```
 
 ## Artifacts
 
@@ -35,7 +53,7 @@ resolved commit SHA of this repository.
 
 ## Add a product
 
-1. Create `projects/<PRODUCT_CODE>/tests`.
+1. Register `projects/<PRODUCT_CODE>` through Tower or the reconciliation command.
 2. Keep page objects and fixtures inside the same product directory.
 3. Add focused specs ending in `.spec.ts`.
 4. Run `pnpm run validate` before the first browser run.
