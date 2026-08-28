@@ -9,6 +9,7 @@ async function withRepository(run) {
   const rootDir = await mkdtemp(join(tmpdir(), "vvp-e2e-"));
   try {
     await mkdir(join(rootDir, "projects", "PRODUCT-A"), { recursive: true });
+    await mkdir(join(rootDir, "projects", "VVP-Recruit"), { recursive: true });
     await run(rootDir);
   } finally {
     await rm(rootDir, { recursive: true, force: true });
@@ -33,11 +34,34 @@ test("selects the requested product suite and normalized HTTP base URL", async (
   });
 });
 
+test("preserves mixed-case product codes when selecting a suite", async () => {
+  await withRepository(async (rootDir) => {
+    const result = resolveE2eEnvironment({
+      rootDir,
+      env: {
+        PRODUCT_CODE: "VVP-Recruit",
+        E2E_BASE_URL: "http://127.0.0.1:4173",
+      },
+    });
+
+    assert.equal(result.productCode, "VVP-Recruit");
+    assert.equal(result.testDir, join(rootDir, "projects", "VVP-Recruit"));
+  });
+});
+
 test("rejects path traversal in PRODUCT_CODE", async () => {
   await withRepository(async (rootDir) => {
     assert.throws(() => resolveE2eEnvironment({
       rootDir,
       env: { PRODUCT_CODE: "../other", E2E_BASE_URL: "http://127.0.0.1:4173" },
+    }), /PRODUCT_CODE/);
+    assert.throws(() => resolveE2eEnvironment({
+      rootDir,
+      env: { PRODUCT_CODE: "VVP/Recruit", E2E_BASE_URL: "http://127.0.0.1:4173" },
+    }), /PRODUCT_CODE/);
+    assert.throws(() => resolveE2eEnvironment({
+      rootDir,
+      env: { PRODUCT_CODE: "VVP Recruit", E2E_BASE_URL: "http://127.0.0.1:4173" },
     }), /PRODUCT_CODE/);
   });
 });

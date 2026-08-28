@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-const PRODUCT_CODE = /^[A-Z0-9][A-Z0-9_-]{0,99}$/;
+const PRODUCT_CODE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/;
 
 export function resolveE2eEnvironment({ rootDir, env = process.env }) {
   const productCode = env.PRODUCT_CODE?.trim();
   if (!productCode || !PRODUCT_CODE.test(productCode)) {
-    throw new Error("PRODUCT_CODE must contain only uppercase letters, digits, underscores, or hyphens");
+    throw new Error("PRODUCT_CODE must contain only letters, digits, underscores, or hyphens");
   }
 
   const rawBaseUrl = env.E2E_BASE_URL?.trim();
