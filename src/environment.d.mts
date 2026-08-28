@@ -4,6 +4,13 @@ export interface E2eEnvironment {
   baseUrl: string;
 }
 
+export interface ProductLifecycle {
+  globalSetup?: string;
+  globalTeardown?: string;
+}
+
+export function resolveProductLifecycle(testDir: string): ProductLifecycle;
+
 export function resolveE2eEnvironment(input: {
   rootDir: string;
   env?: Record<string, string | undefined>;

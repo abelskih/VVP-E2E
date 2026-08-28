@@ -3,6 +3,15 @@ import { resolve } from "node:path";
 
 const PRODUCT_CODE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/;
 
+export function resolveProductLifecycle(testDir) {
+  const globalSetup = resolve(testDir, "global-setup.ts");
+  const globalTeardown = resolve(testDir, "global-teardown.ts");
+  return {
+    ...(existsSync(globalSetup) ? { globalSetup } : {}),
+    ...(existsSync(globalTeardown) ? { globalTeardown } : {}),
+  };
+}
+
 export function resolveE2eEnvironment({ rootDir, env = process.env }) {
   const productCode = env.PRODUCT_CODE?.trim();
   if (!productCode || !PRODUCT_CODE.test(productCode)) {

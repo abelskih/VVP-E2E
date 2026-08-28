@@ -1,12 +1,14 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
-import { resolveE2eEnvironment } from "./src/environment.mjs";
+import { resolveE2eEnvironment, resolveProductLifecycle } from "./src/environment.mjs";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const environment = resolveE2eEnvironment({ rootDir });
+const lifecycle = resolveProductLifecycle(environment.testDir);
 const artifactRoot = `artifacts/${environment.productCode}`;
 
 export default defineConfig({
+  ...lifecycle,
   testDir: environment.testDir,
   testMatch: "**/*.spec.ts",
   timeout: 60_000,
