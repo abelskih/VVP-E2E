@@ -1,0 +1,67 @@
+name: Run centralized VVP E2E
+description: Run a product-scoped Playwright suite on the caller's existing runner.
+
+inputs:
+  product-code:
+    description: Tower product code matching a directory below projects/.
+    required: true
+  base-url:
+    description: HTTP or HTTPS URL of the product already running on the caller runner.
+    required: true
+  allow-global-gate-mutation:
+    description: Explicit opt-in required by suites that mutate global gate configuration.
+    required: false
+    default: ""
+  e2e-commit-sha:
+    description: Full immutable commit SHA used in the caller's uses reference.
+    required: true
+
+outputs:
+  exit-code:
+    description: Playwright process exit code.
+    value: ${{ steps.run.outputs.exit-code }}
+  duration-ms:
+    description: Playwright execution duration in milliseconds.
+    value: ${{ steps.run.outputs.duration-ms }}
+  artifact-path:
+    description: Absolute path containing JUnit, HTML, traces, screenshots, and videos.
+    value: ${{ steps.run.outputs.artifact-path }}
+  junit-path:
+    description: Absolute path to the product JUnit report.
+    value: ${{ steps.run.outputs.junit-path }}
+  e2e-commit-sha:
+    description: Immutable VVP-E2E action revision selected by the caller.
+    value: ${{ steps.run.outputs.e2e-commit-sha }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install and run Playwright
+      id: run
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        PRODUCT_CODE: ${{ inputs.product-code }}
+        E2E_BASE_URL: ${{ inputs.base-url }}
+        E2E_ALLOW_GLOBAL_GATE_MUTATION: ${{ inputs.allow-global-gate-mutation }}
+        E2E_COMMIT_SHA: ${{ inputs.e2e-commit-sha }}
+      run: |
+        set -Eeuo pipefail
+        [[ "${E2E_COMMIT_SHA}" =~ ^[0-9a-f]{40}$ ]]
+        corepack enable
+        pnpm install --frozen-lockfile
+        pnpm exec playwright install --with-deps chromium
+        started="$(date +%s%3N)"
+        set +e
+        pnpm run test:e2e
+        e2e_exit=$?
+        set -e
+        artifact_path="${GITHUB_ACTION_PATH}/artifacts/${PRODUCT_CODE}"
+        {
+          echo "exit-code=${e2e_exit}"
+          echo "duration-ms=$(( $(date +%s%3N) - started ))"
+          echo "artifact-path=${artifact_path}"
+          echo "junit-path=${artifact_path}/junit.xml"
+          echo "e2e-commit-sha=${E2E_COMMIT_SHA}"
+        } >> "${GITHUB_OUTPUT}"
+        exit 0
