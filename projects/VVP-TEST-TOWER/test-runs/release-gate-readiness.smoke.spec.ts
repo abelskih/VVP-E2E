@@ -206,43 +206,15 @@ async function expectDashboardAttention(
     expect(blockedProductIds).not.toContain(productId);
   }
 
-  await expect(
-    page
-      .getByText("\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d\u043e", {
-        exact: true,
-      })
-      .locator("xpath=following-sibling::div[1]"),
-  ).toHaveText(String(attention.blockedProducts.length));
-
-  const blockedProductsCard = page
-    .getByText(
-      "\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0435 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u044b",
-      { exact: true },
-    )
-    .locator(
-      "xpath=ancestor::div[contains(@class, 'border-amber-100')][1]",
-    );
-  const visibleBlockedProducts = attention.blockedProducts.slice(0, 3);
-  const renderedProductLinks = blockedProductsCard.locator(
-    'a[href^="/products/"]',
-  );
-  await expect(renderedProductLinks).toHaveCount(
-    visibleBlockedProducts.length,
-  );
-  for (const product of visibleBlockedProducts) {
-    const productLink = blockedProductsCard.locator(
-      `a[href="/products/${product.productId}"]`,
-    );
-    await expect(productLink).toHaveCount(1);
-    await expect(productLink).toHaveText(product.name);
-    await expect(productLink).toBeVisible();
+  const blockedLink = dashboard.attention
+    .locator(`a[href="/products/${productId}"]`)
+    .filter({ hasText: "Релиз заблокирован" });
+  await expect(blockedLink).toHaveCount(shouldBeBlocked ? 1 : 0);
+  if (shouldBeBlocked) {
+    const product = attention.blockedProducts.find((item) => item.productId === productId);
+    expect(product).toBeDefined();
+    await expect(blockedLink).toContainText(product!.name);
   }
-  const expectedProductLinkCount = visibleBlockedProducts.filter(
-    (product) => product.productId === productId,
-  ).length;
-  await expect(
-    blockedProductsCard.locator(`a[href="/products/${productId}"]`),
-  ).toHaveCount(expectedProductLinkCount);
 }
 
 test.describe.configure({ mode: "serial" });

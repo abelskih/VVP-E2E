@@ -129,6 +129,8 @@ test.describe.serial("Key screens: login → products → run detail → finding
   test("a finding can be created through the UI form", async ({ page }) => {
     const title = `E2E finding ${CODE}`;
     await uiLogin(page, ADMIN);
+    await page.getByRole("combobox", { name: "Выбранный продукт" }).click();
+    await page.getByRole("option", { name: PRODUCT_NAME }).click();
     await page.goto("/findings");
     await page.getByRole("button", { name: /Создать Finding/ }).click();
 
@@ -136,9 +138,8 @@ test.describe.serial("Key screens: login → products → run detail → finding
     await expect(dialog.getByText("Новый Finding")).toBeVisible();
     await dialog.getByPlaceholder(/Краткое описание/).fill(title);
 
-    // Radix Select: открыть выпадающий список продукта и выбрать созданный продукт.
-    await dialog.getByText("Выберите продукт").click();
-    await page.getByRole("option", { name: PRODUCT_NAME }).click();
+    // Выбранный глобально продукт уже подставлен в форму.
+    await expect(dialog.getByRole("combobox").first()).toContainText(PRODUCT_NAME);
 
     await dialog.getByRole("button", { name: /^Создать$/ }).click();
     await expect(dialog).not.toBeVisible();

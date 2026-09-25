@@ -5,7 +5,7 @@ export class DashboardPage {
   readonly attention: Locator;
 
   constructor(readonly page: Page) {
-    this.heading = page.getByRole("heading", { name: "Dashboard" });
+    this.heading = page.getByRole("heading", { name: "Дашборд" });
     this.attention = page
       .getByRole("heading", { name: "Требует внимания" })
       .locator("xpath=ancestor::section[1]");
@@ -17,6 +17,6 @@ export class DashboardPage {
   }
 
   product(name: string) {
-    return this.attention.getByRole("link", { name, exact: true });
+    return this.attention.getByRole("link").filter({ hasText: name });
   }
 }

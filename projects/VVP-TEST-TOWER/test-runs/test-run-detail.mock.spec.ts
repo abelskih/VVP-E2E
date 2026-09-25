@@ -49,7 +49,7 @@ test.describe("@mock Test Run detail", () => {
     await run.goto(RUN_ID);
 
     await expect(run.heading).toContainText("22222222");
-    await expect(run.text("VVP Test Tower")).toBeVisible();
+    await expect(page.getByRole("link", { name: "VVP Test Tower", exact: true })).toBeVisible();
     await expect(run.text("Release Readiness")).toBeVisible();
     await expect(run.text("Blocking check failed")).toBeVisible();
     await expect(run.check(CHECK_ID).root).toContainText("Unit tests");
