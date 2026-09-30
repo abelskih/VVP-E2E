@@ -18,47 +18,43 @@ async function apiLogin(request: APIRequestContext) {
 }
 
 test("custom language becomes reusable only after moderation", async ({ page, request }) => {
-  await login(page);
-  await page.goto("/products/new");
-  await page.getByLabel("Название продукта").fill(`Technology catalog ${SUFFIX}`);
-  await page.getByLabel("Код продукта").fill(CODE);
-  await page.getByText("Выберите...").first().click();
-  await page.getByRole("option", { name: "Internal Product" }).click();
-  await page.getByText("Выберите...").last().click();
-  await page.getByRole("option", { name: "Medium" }).click();
-  await page.getByRole("button", { name: /Далее/ }).click();
-
-  const languageInput = page.getByPlaceholder("Выберите или введите своё значение").first();
-  await languageInput.fill(LANGUAGE);
-  await page.getByRole("button", { name: "Добавить" }).first().click();
-  await page.getByRole("button", { name: `Сделать ${LANGUAGE} основным` }).click();
-  await expect(page.getByText(/не будет в общих подсказках/).first()).toBeVisible();
-  await page.getByRole("button", { name: /Далее/ }).click();
-  await page.getByRole("button", { name: /Создать продукт и продолжить/ }).click();
-  await expect(page.getByText("Release Gate")).toBeVisible();
-
-  await page.goto("/settings");
-  await page.getByRole("button", { name: "Языки, Framework и проверки" }).click();
-  await expect(page.getByText(LANGUAGE)).toBeVisible();
-  await page.getByRole("button", { name: `Одобрить ${LANGUAGE}` }).click();
-  await expect(page.getByText(LANGUAGE)).toHaveCount(0);
-
-  await page.goto("/products/new");
-  await page.getByLabel("Название продукта").fill(`Suggestion proof ${SUFFIX}`);
-  await page.getByLabel("Код продукта").fill(`${CODE}-2`);
-  await page.getByText("Выберите...").first().click();
-  await page.getByRole("option", { name: "Internal Product" }).click();
-  await page.getByText("Выберите...").last().click();
-  await page.getByRole("option", { name: "Medium" }).click();
-  await page.getByRole("button", { name: /Далее/ }).click();
-  await expect(page.locator(`datalist option[value="${LANGUAGE}"]`)).toHaveCount(1);
-
   await apiLogin(request);
-  const products = await request.get(`/api/products?search=${encodeURIComponent(CODE)}`);
-  if (products.ok()) {
-    const body = await products.json();
-    for (const product of body.items ?? body) {
-      if (String(product.code).startsWith(CODE)) await request.delete(`/api/products/${product.id}`);
-    }
+  const created = await request.post("/api/products", {
+    data: {
+      code: CODE,
+      name: `Technology catalog ${SUFFIX}`,
+      productType: "Internal Product",
+      criticality: "Medium",
+      languages: [{ name: LANGUAGE, isPrimary: true }],
+    },
+  });
+  expect(created.status()).toBe(201);
+  const product = await created.json();
+
+  try {
+    expect(product.languages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: LANGUAGE, status: "Pending" }),
+    ]));
+    const before = await request.get("/api/technology-catalog");
+    expect(before.ok()).toBeTruthy();
+    expect((await before.json()).languages).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: LANGUAGE }),
+    ]));
+
+    await login(page);
+    await page.goto("/settings");
+    await page.getByRole("button", { name: "Языки, Framework и проверки" }).click();
+    const approve = page.getByRole("button", { name: `Одобрить ${LANGUAGE}` });
+    await expect(approve).toBeVisible();
+    await approve.click();
+    await expect(approve).toHaveCount(0);
+
+    const after = await request.get("/api/technology-catalog");
+    expect(after.ok()).toBeTruthy();
+    expect((await after.json()).languages).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: LANGUAGE, status: "Approved" }),
+    ]));
+  } finally {
+    await request.delete(`/api/products/${product.id}`);
   }
 });
