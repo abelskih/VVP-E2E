@@ -122,7 +122,7 @@ test.describe.serial("Key screens: login → products → run detail → finding
     await expect(page.getByRole("heading", { name: "Проверки и шаги" })).toBeVisible();
     await expect(page.getByText("Unit tests").first()).toBeVisible();
     // Гейт рассчитан и его итог виден рядом со сведениями о прогоне.
-    await expect(page.getByText("Release Gate")).toBeVisible();
+    await expect(page.getByText("Release Gate", { exact: true })).toBeVisible();
     await expect(page.getByText(/Blocked|Заблокирован/).first()).toBeVisible();
   });
 
