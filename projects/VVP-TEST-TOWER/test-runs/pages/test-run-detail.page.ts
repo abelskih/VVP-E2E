@@ -60,7 +60,7 @@ export class TestRunDetailPage {
 
   async expectCoverageGate(threshold: number, result: "Успех" | "Провал") {
     await this.page.getByRole("link", { name: "К версии продукта" }).click();
-    const rule = this.page.getByRole("group", { name: new RegExp(`Покрытие Unit-тестов ≥ ${threshold}%`) });
+    const rule = this.page.locator("summary").filter({ hasText: `Покрытие Unit-тестов ≥ ${threshold}%` });
     await expect(rule).toContainText("Блокирует");
     await expect(rule).toContainText(result);
   }
