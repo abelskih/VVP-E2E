@@ -4,7 +4,7 @@
  * Покрывает то, что acceptance.spec.ts делает через API, — но через UI:
  * 1. Логин и логаут через интерфейс.
  * 2. RBAC на списке продуктов: viewer не видит чужой продукт.
- * 3. Детали тест-рана с рассчитанным гейтом (Release Readiness).
+ * 3. Детали тест-рана с рассчитанным Release Gate.
  * 4. Создание Finding через форму.
  *
  * Требует запущенных dev-серверов (web + API) и сид-пользователей (pnpm --filter api-server seed).
@@ -119,10 +119,10 @@ test.describe.serial("Key screens: login → products → run detail → finding
   test("test run detail shows checks and the evaluated release gate", async ({ page }) => {
     await uiLogin(page, ADMIN);
     await page.goto(`/test-runs/${runId}`);
-    await expect(page.getByText(/Детали проверок/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Проверки и шаги" })).toBeVisible();
     await expect(page.getByText("Unit tests").first()).toBeVisible();
-    // Гейт рассчитан: блок Release Readiness с заблокированным статусом.
-    await expect(page.getByText("Release Readiness")).toBeVisible();
+    // Гейт рассчитан и его итог виден рядом со сведениями о прогоне.
+    await expect(page.getByText("Release Gate")).toBeVisible();
     await expect(page.getByText(/Blocked|Заблокирован/).first()).toBeVisible();
   });
 
