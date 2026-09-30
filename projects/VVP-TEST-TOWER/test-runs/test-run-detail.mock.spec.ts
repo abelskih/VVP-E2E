@@ -50,9 +50,10 @@ test.describe("@mock Test Run detail", () => {
 
     await expect(run.heading).toContainText("22222222");
     await expect(page.getByRole("link", { name: "VVP Test Tower", exact: true })).toBeVisible();
-    await expect(run.text("Release Readiness")).toBeVisible();
+    await expect(run.text("Release Gate")).toBeVisible();
     await expect(run.text("Blocking check failed")).toBeVisible();
     await expect(run.check(CHECK_ID).root).toContainText("Unit tests");
+    await run.check(CHECK_ID).expand();
     await expect(run.check(CHECK_ID).root).toContainText("Coverage: 64.2%");
     await expect(run.text("Avg coverage Unit")).toBeVisible();
     await expect(run.text("50%")).toBeVisible();

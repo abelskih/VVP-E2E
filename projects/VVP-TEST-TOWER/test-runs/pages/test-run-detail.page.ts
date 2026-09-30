@@ -17,8 +17,8 @@ export class TestRunDetailPage {
   readonly branchCommit: Locator;
 
   constructor(readonly page: Page) {
-    this.heading = page.getByRole("heading", { name: /^Run / });
-    this.backLink = page.getByRole("link", { name: "Назад к списку" });
+    this.heading = page.getByRole("heading", { name: /^Прогон / });
+    this.backLink = page.getByRole("link", { name: "К истории прогонов" });
     this.accessDenied = page.getByText(
       "Нет доступа к этому тестовому прогону.",
       { exact: true },
@@ -59,7 +59,8 @@ export class TestRunDetailPage {
   }
 
   async expectCoverageGate(threshold: number, result: "Успех" | "Провал") {
-    const rule = this.page.getByText(`Покрытие Unit-тестов ≥ ${threshold}%`, { exact: true }).locator("..");
+    await this.page.getByRole("link", { name: "К версии продукта" }).click();
+    const rule = this.page.getByRole("button", { name: new RegExp(`Покрытие Unit-тестов ≥ ${threshold}%`) });
     await expect(rule).toContainText("Блокирует");
     await expect(rule).toContainText(result);
   }

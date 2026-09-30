@@ -19,12 +19,12 @@ export class CheckCardComponent {
     return this.root.getByRole("button", { name: "Показать все" });
   }
 
-  get showLogsButton() {
-    return this.root.getByRole("button", { name: "Показать логи" });
+  get toggleButton() {
+    return this.root.locator("button[aria-expanded]");
   }
 
-  get hideLogsButton() {
-    return this.root.getByRole("button", { name: "Скрыть логи" });
+  get rawOutputTab() {
+    return this.root.getByRole("button", { name: "Raw output" });
   }
 
   get findingButton() {
@@ -47,6 +47,7 @@ export class CheckCardComponent {
   }
 
   async openTestCases() {
+    await this.expand();
     await this.testCasesButton.click();
   }
 
@@ -59,14 +60,22 @@ export class CheckCardComponent {
   }
 
   async openLogs() {
-    await this.showLogsButton.click();
+    await this.expand();
+    await this.rawOutputTab.click();
   }
 
   async hideLogs() {
-    await this.hideLogsButton.click();
+    await this.toggleButton.click();
   }
 
   async openFinding() {
+    await this.expand();
     await this.findingButton.click();
+  }
+
+  async expand() {
+    if (await this.toggleButton.getAttribute("aria-expanded") !== "true") {
+      await this.toggleButton.click();
+    }
   }
 }
