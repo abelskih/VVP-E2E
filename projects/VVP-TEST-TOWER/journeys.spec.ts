@@ -129,22 +129,20 @@ test.describe.serial("Key screens: login → products → run detail → finding
   test("a finding can be created through the UI form", async ({ page }) => {
     const title = `E2E finding ${CODE}`;
     await uiLogin(page, ADMIN);
-    await page.getByRole("combobox", { name: "Выбранный продукт" }).click();
-    await page.getByRole("option", { name: PRODUCT_NAME }).click();
-    await page.goto("/findings");
+    await page.goto(`/test-runs/${runId}`);
+    const failedCheck = page.getByRole("button", { name: /Unit tests.*Не пройдено/ });
+    if (await failedCheck.getAttribute("aria-expanded") !== "true") await failedCheck.click();
     await page.getByRole("button", { name: /Создать Finding/ }).click();
 
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Новый Finding")).toBeVisible();
-    await dialog.getByPlaceholder(/Краткое описание/).fill(title);
-
-    // Выбранный глобально продукт уже подставлен в форму.
-    await expect(dialog.getByRole("combobox").first()).toContainText(PRODUCT_NAME);
+    await expect(dialog.getByText("Создать Finding")).toBeVisible();
+    await dialog.getByRole("textbox", { name: "Заголовок" }).fill(title);
 
     await dialog.getByRole("button", { name: /^Создать$/ }).click();
     await expect(dialog).not.toBeVisible();
 
-    // Finding появился в списке.
+    // Finding, связанный с упавшей проверкой, появился в истории продукта.
+    await page.getByRole("link", { name: /Все findings продукта/ }).click();
     await expect(page.getByText(title).first()).toBeVisible();
   });
 

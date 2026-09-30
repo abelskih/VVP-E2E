@@ -188,6 +188,8 @@ async function expectDashboardAttention(
   page: Page,
   dashboard: DashboardPage,
   productId: string,
+  productCode: string,
+  productName: string,
   shouldBeBlocked: boolean,
 ): Promise<void> {
   const attentionResponse = page.waitForResponse(
@@ -206,14 +208,18 @@ async function expectDashboardAttention(
     expect(blockedProductIds).not.toContain(productId);
   }
 
-  const blockedLink = dashboard.attention
-    .locator(`a[href="/products/${productId}"]`)
+  await page.getByRole("button", { name: /Показать продукты/ }).click();
+  await page.getByRole("button", { name: "Снять выбор" }).click();
+  await page.getByRole("checkbox", { name: productName }).check();
+  await page.getByRole("button", { name: /Показать продукты/ }).click();
+
+  const blockedProductLink = dashboard.attention.locator(`a[href="/products/${productCode}"]`)
     .filter({ hasText: "Релиз заблокирован" });
-  await expect(blockedLink).toHaveCount(shouldBeBlocked ? 1 : 0);
   if (shouldBeBlocked) {
-    const product = attention.blockedProducts.find((item) => item.productId === productId);
-    expect(product).toBeDefined();
-    await expect(blockedLink).toContainText(product!.name);
+    await expect(blockedProductLink).toHaveCount(1);
+    await expect(blockedProductLink).toContainText(productName);
+  } else {
+    await expect(blockedProductLink).toHaveCount(0);
   }
 }
 
@@ -411,6 +417,8 @@ test("@smoke recalculates run and Dashboard when the Unit coverage gate changes 
     page,
     dashboard,
     releaseGateSmoke.productId,
+    releaseGateSmoke.productCode,
+    releaseGateSmoke.productName,
     false,
   );
 
@@ -429,6 +437,8 @@ test("@smoke recalculates run and Dashboard when the Unit coverage gate changes 
     page,
     dashboard,
     releaseGateSmoke.productId,
+    releaseGateSmoke.productCode,
+    releaseGateSmoke.productName,
     true,
   );
 });
